@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "812357074947",
+    "project_id": "pulmosenseai-e7c5e",
+    "storage_bucket": "pulmosenseai-e7c5e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812357074947:android:ee0baf86de8eca595b0e36",
+        "android_client_info": {
+          "package_name": "com.example.lung_sound_system"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "812357074947-r78hdt9vcmerrifh297boftc2jtm42kb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOWsxG8cbDvSMG_68ZqfPqgwX2wEEp_Ro"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "812357074947-r78hdt9vcmerrifh297boftc2jtm42kb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
