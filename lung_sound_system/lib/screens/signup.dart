@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'login.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -14,6 +15,38 @@ class SignupScreenState extends State<SignupScreen> {
   final TextEditingController slmcController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance; // FirebaseAuth instance
+
+  // Method to handle sign up
+  Future<void> _signUp() async {
+    try {
+      // Create a new user using email and password
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      // If successful, navigate to the Login screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      // Handle different FirebaseAuthException errors
+      String errorMessage = 'An error occurred';
+      if (e.code == 'email-already-in-use') {
+        errorMessage = 'The email is already in use. Please try another one.';
+      } else if (e.code == 'weak-password') {
+        errorMessage = 'The password is too weak. Please use a stronger password.';
+      }
+      
+      // Show error message in a SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,12 +86,7 @@ class SignupScreenState extends State<SignupScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => LoginScreen()),
-                      );
-                    },
+                    onPressed: _signUp, // Call _signUp() method
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       shape: RoundedRectangleBorder(

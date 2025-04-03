@@ -10,7 +10,7 @@ void main() {
 class Contact {
   final String name;
   final String profilePicUrl;
-  final List<String> messages;
+  List<Map<String, dynamic>> messages;
 
   Contact({
     required this.name,
@@ -28,22 +28,23 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   final List<Contact> contacts = [
-    Contact(name: 'Janith', profilePicUrl: 'https://www.example.com/profile1.jpg', messages: ['Hello!', 'How are you?']),
-    Contact(name: 'Charith', profilePicUrl: 'https://www.example.com/profile2.jpg', messages: ['Hey!', 'What\'s up?']),
-    Contact(name: 'Dinuvi', profilePicUrl: 'https://www.example.com/profile3.jpg', messages: ['Hi!', 'Long time no see.']),
-    Contact(name: 'Kenath', profilePicUrl: 'https://www.example.com/profile7.jpg', messages: ['Hey!', 'How\'s it going?']),
-    Contact(name: 'Chandeepa', profilePicUrl: 'https://www.example.com/profile8.jpg', messages: ['Hi!', 'Can you help me with something?']),
-    Contact(name: 'Manu', profilePicUrl: 'https://www.example.com/profile10.jpg', messages: ['Hey!', 'Let\'s hang out soon!']),
+    Contact(name: 'Janith', profilePicUrl: 'https://www.example.com/profile1.jpg', messages: [
+      {'text': 'Hello!', 'isUser': false},
+      {'text': 'How are you?', 'isUser': false},
+    ]),
+    Contact(name: 'Charith', profilePicUrl: 'https://www.example.com/profile2.jpg', messages: [
+      {'text': 'Hey!', 'isUser': false},
+      {'text': "What's up?", 'isUser': false},
+    ]),
   ];
 
   late Contact selectedContact;
-
   final TextEditingController _messageController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    selectedContact = contacts[0]; // Default to first contact
+    selectedContact = contacts[0];
   }
 
   @override
@@ -52,119 +53,71 @@ class ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  // Send message to the selected contact
   void _sendMessage() {
     if (_messageController.text.isNotEmpty) {
       setState(() {
-        selectedContact.messages.add(_messageController.text); // Add message to the selected contact's messages
+        selectedContact.messages.add({'text': _messageController.text, 'isUser': true});
       });
-      _messageController.clear(); // Clear the input field
+      _messageController.clear();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF222222), // Dark background
+      backgroundColor: const Color(0xFF222222),
       appBar: AppBar(
-        title: const Text(
-          "Chat",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color.fromARGB(255, 22, 22, 22),
-        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-        elevation: 1,
+        title: const Text("Chat", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF181818),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Search functionality
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // Settings functionality
-            },
-          ),
+          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.settings), onPressed: () {}),
         ],
       ),
       body: Row(
         children: [
-          // Left side: Contact List with Group Option
+          // Contact List
           Container(
-            width: 320,
-            color: const Color(0xFF222222), // Dark background
+            width: 280,
+            color: const Color(0xFF333333),
             child: Column(
               children: [
-                const SizedBox(height: 20), // Space on top
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'Contacts & Groups',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('Contacts', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: contacts.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: NetworkImage(contacts[index].profilePicUrl),
+                          radius: 25,
+                        ),
+                        title: Text(
+                          contacts[index].name,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            selectedContact = contacts[index];
+                          });
+                        },
+                        tileColor: selectedContact == contacts[index] ? Colors.blueGrey[700] : Colors.transparent,
+                      );
+                    },
                   ),
                 ),
-                const Divider(color: Colors.white24),
-Expanded(
-  child: ListView.builder(
-    itemCount: contacts.length + 1, // One extra for "Create Group" option
-    itemBuilder: (context, index) {
-      if (index == contacts.length) {
-        return ListTile(
-          leading: const Icon(Icons.group, color: Colors.white),
-          title: const Text(
-            'Create Group',
-            style: TextStyle(color: Colors.white),
-          ),
-          onTap: () {
-            // Handle group creation logic here
-          },
-          tileColor: Colors.blueGrey[700],
-        );
-      }
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18), // Add 10 units of space between each contact
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundImage: NetworkImage(contacts[index].profilePicUrl),
-            radius: 30,
-          ),
-          title: Text(
-            contacts[index].name,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-          ),
-          onTap: () {
-            setState(() {
-              selectedContact = contacts[index]; // Set the selected contact
-            });
-          },
-          tileColor: selectedContact == contacts[index] ? Colors.blueGrey[700] : Colors.transparent,
-        ),
-      );
-    },
-  ),
-),
-
               ],
             ),
           ),
 
-          // Divider to separate the two sections
-          const VerticalDivider(
-            color: Colors.white24,
-            thickness: 1,
-          ),
-
-          // Right side: Chat Interface
+          // Chat Interface
           Expanded(
             child: Column(
               children: [
-                // Header for the selected contact
+                // Selected Contact Header
                 Container(
                   color: Colors.blueGrey[900],
                   padding: const EdgeInsets.all(16),
@@ -177,37 +130,31 @@ Expanded(
                       const SizedBox(width: 10),
                       Text(
                         selectedContact.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
-
-                const Divider(
-                  color: Colors.white24,
-                  thickness: 1,
-                ),
-
-                // Display chat messages
+                
+                const Divider(color: Colors.white24, thickness: 1),
+                
                 Expanded(
                   child: ListView.builder(
                     itemCount: selectedContact.messages.length,
                     itemBuilder: (context, index) {
-                      return _buildMessage(selectedContact.messages[index], index % 2 == 0);
+                      return _buildMessage(
+                        selectedContact.messages[index]['text'],
+                        selectedContact.messages[index]['isUser'],
+                      );
                     },
                   ),
                 ),
 
-                // Message input field and send button
+                // Message Input
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 10.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                   child: Row(
                     children: [
-                      // Text Field for input
                       Expanded(
                         child: TextField(
                           controller: _messageController,
@@ -225,8 +172,6 @@ Expanded(
                           ),
                         ),
                       ),
-
-                      // Send Button
                       IconButton(
                         icon: const Icon(Icons.send, color: Colors.blue),
                         onPressed: _sendMessage,
@@ -242,24 +187,16 @@ Expanded(
     );
   }
 
-  // Widget to build a chat message
+  // Chat Message Widget
   Widget _buildMessage(String text, bool isSentByUser) {
     return Align(
       alignment: isSentByUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSentByUser ? Colors.blueAccent : Colors.grey[700],
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              // ignore: deprecated_member_use
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 5,
-              spreadRadius: 1,
-            ),
-          ],
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           text,
