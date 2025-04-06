@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'dart:async';
 
 // Import other pages
-import 'microphone_page.dart';
+// import 'microphone_page.dart';
 import 'chat_page.dart';
 import 'profile_page.dart';
+import 'add_patient.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,142 +32,86 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  String _timeString = "";
-  String _dateString = "";
+  int _selectedIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _updateTime();
-    Timer.periodic(const Duration(seconds: 1), (Timer t) => _updateTime());
-  }
-
-  void _updateTime() {
-    final DateTime now = DateTime.now();
-    final String formattedTime = DateFormat('hh:mm a').format(now);
-    final String formattedDate = DateFormat('yyyy-MM-dd').format(now);
-    setState(() {
-      _timeString = formattedTime;
-      _dateString = formattedDate;
-    });
-  }
+  final List<Widget> _pages = [
+    const DashboardContent(), // Modified dashboard
+    const AddPatientPage(),
+    const ChatPage(),
+    const ProfilePage(),
+  ];
 
   void _onItemTapped(int index) {
-    Widget page;
-    switch (index) {
-      case 1:
-        page = const MicrophonePage();
-        break;
-      case 2:
-        page = const ChatPage();
-        break;
-      case 3:
-        page = const ProfilePage();
-        break;
-      default:
-        return;
-    }
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF222222), // Dark background
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 20.0, top: 40.0),
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Hello,",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    "Welcome Back",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white54,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Spacer(),
-          Text(
-            _timeString,
-            style: const TextStyle(
-              fontSize: 50,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          Text(
-            _dateString,
-            style: const TextStyle(
-              fontSize: 20,
-              color: Colors.white70,
-            ),
-          ),
-          const Spacer(),
-Padding(
-  padding: const EdgeInsets.only(bottom: 28), // Add margin to bottom
-  child: SizedBox(
-    width: 800, // Change this value to increase/decrease width
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color.fromRGBO(33, 33, 33, 1),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            // ignore: deprecated_member_use
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.home, color: Colors.white, size: 28),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.mic, color: Colors.white70, size: 28),
-            onPressed: () => _onItemTapped(1),
-          ),
-          IconButton(
-            icon: const Icon(Icons.message, color: Colors.white70, size: 28),
-            onPressed: () => _onItemTapped(2),
-          ),
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white70, size: 28),
-            onPressed: () => _onItemTapped(3),
-          ),
-        ],
-      ),
-    ),
-  ),
-),
+      backgroundColor: const Color(0xFF222222),
+      body: SafeArea(child: _pages[_selectedIndex]),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        backgroundColor: const Color(0xFF1E1E1E),
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: const Color.fromARGB(179, 106, 105, 105),
+        showUnselectedLabels: false,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
+          BottomNavigationBarItem(icon: Icon(Icons.message), label: "Chat"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
     );
   }
-  
+}
+
+// Updated dashboard content widget
+class DashboardContent extends StatelessWidget {
+  const DashboardContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/auscultation_image.png',
+            width: 200,
+            height: 200,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 40),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddPatientPage()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'START AUSCULTATION',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
