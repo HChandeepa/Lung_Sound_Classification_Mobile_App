@@ -12,6 +12,7 @@ class AddPatientPage extends StatefulWidget {
 class _AddPatientPageState extends State<AddPatientPage> {
   final _formKey = GlobalKey<FormState>();
 
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _nicController = TextEditingController();
   final TextEditingController _genderController = TextEditingController();
   final TextEditingController _birthDayController = TextEditingController();
@@ -20,6 +21,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _nicController.dispose();
     _genderController.dispose();
     _birthDayController.dispose();
@@ -83,7 +85,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
         return Theme(
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Colors.orangeAccent,
+              primary: Colors.blueAccent,
               surface: Color(0xFF2C2C2C),
               onSurface: Colors.white,
             ),
@@ -123,6 +125,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
           key: _formKey,
           child: ListView(
             children: [
+              _buildTextField("Patient Name*", "Please enter patient name", _nameController),
               _buildTextField("Patient NIC*", "Please enter patient ID", _nicController),
               _buildGenderField(),
               _buildBirthDateField(),
@@ -178,7 +181,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                 borderSide: BorderSide(color: Colors.white38),
               ),
               focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.orangeAccent),
+                borderSide: BorderSide(color: Colors.blueAccent),
               ),
               border: OutlineInputBorder(),
             ),
@@ -208,7 +211,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                 borderSide: BorderSide(color: Colors.white38),
               ),
               focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.orangeAccent),
+                borderSide: BorderSide(color: Colors.blueAccent),
               ),
               border: OutlineInputBorder(),
             ),
@@ -230,14 +233,14 @@ class _AddPatientPageState extends State<AddPatientPage> {
             borderSide: BorderSide(color: Colors.white38),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.orangeAccent),
+            borderSide: BorderSide(color: Colors.blueAccent),
           ),
           hintText: 'Enter phone number',
           hintStyle: TextStyle(color: Colors.white54),
         ),
         style: const TextStyle(color: Colors.white),
         dropdownTextStyle: const TextStyle(color: Colors.white),
-        initialCountryCode: 'LK', // Change to your preferred default
+        initialCountryCode: 'LK',
         onChanged: (phone) {
           _phoneNumber = phone.completeNumber;
         },
@@ -272,7 +275,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
             borderSide: BorderSide(color: Colors.white38),
           ),
           focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.orangeAccent),
+            borderSide: BorderSide(color: Colors.blueAccent),
           ),
           border: const OutlineInputBorder(),
         ),

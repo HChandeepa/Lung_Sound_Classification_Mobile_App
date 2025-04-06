@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 // Import other pages
-// import 'microphone_page.dart';
 import 'chat_page.dart';
 import 'profile_page.dart';
 import 'add_patient.dart';
+import 'history_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,8 +35,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const DashboardContent(), // Modified dashboard
-    const AddPatientPage(),
+    const DashboardContent(), 
+    const HistoryPage(),
     const ChatPage(),
     const ProfilePage(),
   ];
