@@ -60,22 +60,34 @@ class NewPatientAuscultationPage extends StatelessWidget {
 
   Widget _buildInfoTile(String title, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "$title: ",
-            style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+            "$title:",
+            style: const TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(color: Colors.white),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Divider(
+      color: Colors.white30,
+      thickness: 0.5,
     );
   }
 
@@ -107,13 +119,35 @@ class NewPatientAuscultationPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            _buildInfoTile('Name', patientName),
-            _buildInfoTile('NIC', patientNIC),
-            _buildInfoTile('Gender', gender),
-            _buildInfoTile('Birth Date', birthDate),
-            _buildInfoTile('Home Town', homeTown),
-            _buildInfoTile('Phone', phoneNumber),
+            // Info Section with Card
+            Card(
+              color: const Color(0xFF333333),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoTile('Name', patientName),
+                    _buildDivider(),
+                    _buildInfoTile('NIC', patientNIC),
+                    _buildDivider(),
+                    _buildInfoTile('Gender', gender),
+                    _buildDivider(),
+                    _buildInfoTile('Birth Date', birthDate),
+                    _buildDivider(),
+                    _buildInfoTile('Home Town', homeTown),
+                    _buildDivider(),
+                    _buildInfoTile('Phone', phoneNumber),
+                  ],
+                ),
+              ),
+            ),
             const Spacer(),
+            // Diagnosis Button Section
             Center(
               child: ElevatedButton(
                 onPressed: () => _showDiagnosisOptions(context),
@@ -135,6 +169,7 @@ class NewPatientAuscultationPage extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
