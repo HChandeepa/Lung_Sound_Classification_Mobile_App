@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
+// Import the next page
+import 'new_patients_auscultation.dart'; // Replace with the actual path of the next screen
+
 class AddPatientPage extends StatefulWidget {
   const AddPatientPage({super.key});
 
@@ -32,46 +35,50 @@ class _AddPatientPageState extends State<AddPatientPage> {
   void _showGenderSelection() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF2C2C2C),
-        title: const Text(
-          'Select Gender',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            GestureDetector(
-              onTap: () {
-                _genderController.text = 'Male';
-                Navigator.pop(context);
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset('assets/male.jpg', width: 80, height: 80),
-                  const SizedBox(height: 5),
-                  const Text('Male', style: TextStyle(color: Colors.white)),
-                ],
-              ),
+      builder:
+          (_) => AlertDialog(
+            backgroundColor: const Color(0xFF2C2C2C),
+            title: const Text(
+              'Select Gender',
+              style: TextStyle(color: Colors.white),
             ),
-            GestureDetector(
-              onTap: () {
-                _genderController.text = 'Female';
-                Navigator.pop(context);
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset('assets/female.jpg', width: 80, height: 80),
-                  const SizedBox(height: 5),
-                  const Text('Female', style: TextStyle(color: Colors.white)),
-                ],
-              ),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    _genderController.text = 'Male';
+                    Navigator.pop(context);
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset('assets/male.jpg', width: 80, height: 80),
+                      const SizedBox(height: 5),
+                      const Text('Male', style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    _genderController.text = 'Female';
+                    Navigator.pop(context);
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset('assets/female.jpg', width: 80, height: 80),
+                      const SizedBox(height: 5),
+                      const Text(
+                        'Female',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -119,44 +126,87 @@ class _AddPatientPageState extends State<AddPatientPage> {
         centerTitle: true,
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              _buildTextField("Patient Name*", "Please enter patient name", _nameController),
-              _buildTextField("Patient NIC*", "Please enter patient ID", _nicController),
-              _buildGenderField(),
-              _buildBirthDateField(),
-              _buildTextField("Home Town", "Please enter patient's Home town", _homeTownController),
-              _buildPhoneField(),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Proceeding to next step...')),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        _buildTextField(
+                          "Patient Name*",
+                          "Please enter patient name",
+                          _nameController,
+                        ),
+                        _buildTextField(
+                          "Patient NIC*",
+                          "Please enter patient ID",
+                          _nicController,
+                        ),
+                        _buildGenderField(),
+                        _buildBirthDateField(),
+                        _buildTextField(
+                          "Home Town",
+                          "Please enter patient's Home town",
+                          _homeTownController,
+                        ),
+                        _buildPhoneField(),
+                      ],
+                    ),
                   ),
                 ),
-                child: const Text(
-                  'NEXT',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Proceeding to Auscultation'),
+                        ),
+                      );
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => NewPatientAuscultationPage(
+                              patientName: _nameController.text,
+                              patientNIC: _nicController.text,
+                              gender: _genderController.text,
+                              birthDate: _birthDayController.text,
+                              homeTown: _homeTownController.text,
+                              phoneNumber: _phoneNumber,
+                            ),
+                          ),
+                        );
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 40,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  child: const Text(
+                    'NEXT',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              )
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -175,7 +225,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
             decoration: const InputDecoration(
               labelText: "Gender* (Tap to select)",
               labelStyle: TextStyle(color: Colors.white),
-              hintText: "Please enter patient gender",
+              hintText: "Please select patient gender",
               hintStyle: TextStyle(color: Colors.white54),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white38),
@@ -185,8 +235,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
               ),
               border: OutlineInputBorder(),
             ),
-            validator: (value) =>
-                (value == null || value.trim().isEmpty) ? 'This field is required' : null,
+            validator:
+                (value) =>
+                    (value == null || value.trim().isEmpty)
+                        ? 'This field is required'
+                        : null,
           ),
         ),
       ),
@@ -205,7 +258,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
             decoration: const InputDecoration(
               labelText: "Birth Day",
               labelStyle: TextStyle(color: Colors.white),
-              hintText: "Please enter patient's Birth Day",
+              hintText: "Please enter patient's birth date",
               hintStyle: TextStyle(color: Colors.white54),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white38),
@@ -215,6 +268,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
               ),
               border: OutlineInputBorder(),
             ),
+            validator:
+                (value) =>
+                    (value == null || value.trim().isEmpty)
+                        ? 'Please select birth date'
+                        : null,
           ),
         ),
       ),
@@ -226,7 +284,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: IntlPhoneField(
         decoration: const InputDecoration(
-          labelText: 'Contact No',
+          labelText: 'Contact No*',
           labelStyle: TextStyle(color: Colors.white),
           border: OutlineInputBorder(),
           enabledBorder: OutlineInputBorder(
@@ -244,7 +302,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
         onChanged: (phone) {
           _phoneNumber = phone.completeNumber;
         },
-        validator: (value) {
+        validator: (phone) {
           if (_phoneNumber.isEmpty) {
             return 'Please enter a valid contact number';
           }
