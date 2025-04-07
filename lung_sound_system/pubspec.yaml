@@ -39,8 +39,8 @@ dependencies:
   firebase_core: ^3.13.0
   intl_phone_field: ^3.1.0
   # flutter_sound: ^9.28.0
-  file_picker: ^5.0.0
-  audio_recorder2: ^0.0.3
+  #file_picker: ^5.0.0
+  #audio_recorder2: ^0.0.3
 
 
 dev_dependencies:
