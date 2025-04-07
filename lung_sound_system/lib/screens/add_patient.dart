@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
-// Import the next page
-import 'new_patients_auscultation.dart'; // Replace with the actual path of the next screen
-
 class AddPatientPage extends StatefulWidget {
   const AddPatientPage({super.key});
 
@@ -96,7 +93,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
               surface: Color(0xFF2C2C2C),
               onSurface: Colors.white,
             ),
-            dialogBackgroundColor: const Color(0xFF2C2C2C),
+            dialogTheme: const DialogTheme(backgroundColor: Color(0xFF2C2C2C)),
           ),
           child: child!,
         );
@@ -159,30 +156,17 @@ class _AddPatientPageState extends State<AddPatientPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Proceeding to Auscultation'),
+                          content: Text(
+                            'Patient information saved successfully',
+                          ),
                         ),
                       );
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => NewPatientAuscultationPage(
-                              patientName: _nameController.text,
-                              patientNIC: _nicController.text,
-                              gender: _genderController.text,
-                              birthDate: _birthDayController.text,
-                              homeTown: _homeTownController.text,
-                              phoneNumber: _phoneNumber,
-                            ),
-                          ),
-                        );
-                      });
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -197,7 +181,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
                     minimumSize: const Size.fromHeight(50),
                   ),
                   child: const Text(
-                    'NEXT',
+                    'SAVE',
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.white,

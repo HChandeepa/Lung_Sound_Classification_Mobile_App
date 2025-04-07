@@ -24,7 +24,10 @@ class NewPatientAuscultationPage extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: const Color(0xFF2C2C2C),
-          title: const Text('Choose Diagnosis Method', style: TextStyle(color: Colors.white)),
+          title: const Text(
+            'Choose Diagnosis Method',
+            style: TextStyle(color: Colors.white),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -43,9 +46,7 @@ class NewPatientAuscultationPage extends StatelessWidget {
               ElevatedButton.icon(
                 icon: const Icon(Icons.mic),
                 label: const Text('RECORD AUDIO'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                 onPressed: () {
                   Navigator.pop(context);
                   // Handle Record Audio
@@ -74,10 +75,7 @@ class NewPatientAuscultationPage extends StatelessWidget {
           ),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: Colors.white, fontSize: 16),
           ),
         ],
       ),
@@ -85,10 +83,7 @@ class NewPatientAuscultationPage extends StatelessWidget {
   }
 
   Widget _buildDivider() {
-    return const Divider(
-      color: Colors.white30,
-      thickness: 0.5,
-    );
+    return const Divider(color: Colors.white30, thickness: 0.5);
   }
 
   @override
@@ -153,7 +148,10 @@ class NewPatientAuscultationPage extends StatelessWidget {
                 onPressed: () => _showDiagnosisOptions(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 16,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
