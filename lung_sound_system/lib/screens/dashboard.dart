@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 // Import other pages
 import 'chat_page.dart';
 import 'profile_page.dart';
-import 'add_patient.dart';
 import 'history_page.dart';
+import 'select_patient.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -35,7 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const DashboardContent(), 
+    const DashboardContent(),
     const HistoryPage(),
     const ChatPage(),
     const ProfilePage(),
@@ -91,7 +91,7 @@ class DashboardContent extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddPatientPage()),
+                MaterialPageRoute(builder: (context) => const SelectPatientPage()), // 👈 Updated
               );
             },
             style: ElevatedButton.styleFrom(
