@@ -1,105 +1,218 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login.dart';
+import 'dashboard.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late User _user;
+  bool _isLoading = true;
+  String fullName = '', institution = '', slmc = '', email = '', imageUrl = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _user = _auth.currentUser!;
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        Map<String, dynamic> userData =
+            userDoc.data() as Map<String, dynamic>;
+
+        setState(() {
+          fullName = userData['fullName'] ?? 'N/A';
+          institution = userData['institution'] ?? 'N/A';
+          slmc = userData['slmc'] ?? 'N/A';
+          email = userData['email'] ?? 'N/A';
+          imageUrl = userData.containsKey('profileImageUrl')
+              ? userData['profileImageUrl']
+              : '';
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User data not found in Firestore.')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching user data: $e')),
+      );
+    }
+  }
+
+  Future<void> _logout() async {
+    await _auth.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF222222), // Dark background
+      backgroundColor: const Color(0xFF1C1C1E),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Go back when the back button is pressed
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => DashboardScreen()),
+            );
           },
         ),
         title: const Text(
           "Profile",
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color.fromARGB(255, 22, 22, 22),
-        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: const Color(0xFF1C1C1E),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            // Profile Picture with shadow
-            CircleAvatar(
-              radius: 80,
-              backgroundImage: NetworkImage('https://www.example.com/profile_pic.jpg'), // Replace with user's profile image URL
-              backgroundColor: Colors.transparent,
-            ),
-            const SizedBox(height: 20),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+              child: Column(
+                children: [
+                  // Profile Image with soft shadow
+                  Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.5),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 80,
+                        backgroundImage: imageUrl.isNotEmpty
+                            ? NetworkImage(imageUrl)
+                            : const AssetImage('assets/profile_picture1.png')
+                                as ImageProvider,
+                        backgroundColor: Colors.transparent,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 25),
 
-            // User Name and Email
-            Text(
-              "MediCare", // Replace with the user's name
+                  // Full name and email
+                  Text(
+                    fullName,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    email,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Info Card
+                  Card(
+                    color: const Color(0xFF2C2C2E),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 25),
+                      child: Column(
+                        children: [
+                          _buildInfoRow("Institution", institution),
+                          const Divider(color: Colors.white12),
+                          _buildInfoRow("SLMC Reg No", slmc),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Logout Button
+                  ElevatedButton.icon(
+                    onPressed: _logout,
+                    icon: const Icon(Icons.logout),
+                    label: const Text("Logout"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 60, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildInfoRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Text(
+            "$title:",
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
               style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
                 color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "MediCare@example.com", // Replace with the user's email
-              style: const TextStyle(
                 fontSize: 16,
-                color: Colors.white70,
               ),
             ),
-            const SizedBox(height: 40),
-
-            // Divider for separation
-            const Divider(
-              color: Colors.white24,
-              thickness: 1,
-            ),
-            const SizedBox(height: 20),
-
-            // Additional User Info Section (e.g., Bio, etc.)
-            Text(
-              "This is a sample bio of the user. You can add more information here like address, phone number, etc.",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white54,
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            // Logout Button with styling
-            ElevatedButton(
-              onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => LoginScreen()),
-                          );
-                // Add your logout functionality here
-                // Example: Navigator.pushReplacementNamed(context, '/login');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 120, vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 5,
-              ),
-              child: const Text(
-                "Logout",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
+          )
+        ],
       ),
     );
   }

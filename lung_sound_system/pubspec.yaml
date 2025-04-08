@@ -41,6 +41,11 @@ dependencies:
   # flutter_sound: ^9.28.0
   #file_picker: ^5.0.0
   #audio_recorder2: ^0.0.3
+  cloud_firestore: ^5.6.6
+  firebase_storage: ^12.4.5
+  # image_picker: ^1.0.4
+  # path_provider: ^2.1.2
+  # shared_preferences: ^2.2.2
 
 
 dev_dependencies:
@@ -76,6 +81,7 @@ flutter:
     - assets/auscultation_image.png
     - assets/male.jpg
     - assets/female.jpg
+    - assets/profile_picture1.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
