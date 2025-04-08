@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Added Firestore import
 import 'login.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -16,35 +17,46 @@ class SignupScreenState extends State<SignupScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance; // FirebaseAuth instance
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Method to handle sign up
   Future<void> _signUp() async {
     try {
       // Create a new user using email and password
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
-      // If successful, navigate to the Login screen
+      // Save additional details to Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+            'fullName': nameController.text.trim(),
+            'institution': institutionController.text.trim(),
+            'slmc': slmcController.text.trim(),
+            'email': emailController.text.trim(),
+          });
+
+      // Navigate to the Login screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginScreen()),
       );
     } on FirebaseAuthException catch (e) {
-      // Handle different FirebaseAuthException errors
       String errorMessage = 'An error occurred';
       if (e.code == 'email-already-in-use') {
         errorMessage = 'The email is already in use. Please try another one.';
       } else if (e.code == 'weak-password') {
-        errorMessage = 'The password is too weak. Please use a stronger password.';
+        errorMessage =
+            'The password is too weak. Please use a stronger password.';
       }
-      
-      // Show error message in a SnackBar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     }
   }
 
@@ -61,10 +73,7 @@ class SignupScreenState extends State<SignupScreen> {
               children: [
                 Align(
                   alignment: Alignment.topCenter,
-                  child: Image.asset(
-                    'assets/signup_image.png',
-                    height: 200,
-                  ),
+                  child: Image.asset('assets/signup_image.png', height: 200),
                 ),
                 const SizedBox(height: 30),
                 const Text(
@@ -80,7 +89,11 @@ class SignupScreenState extends State<SignupScreen> {
                 _buildTextField(institutionController, 'Institution'),
                 _buildTextField(slmcController, 'SLMC Registration No'),
                 _buildTextField(emailController, 'E-mail'),
-                _buildTextField(passwordController, 'Password', isPassword: true),
+                _buildTextField(
+                  passwordController,
+                  'Password',
+                  isPassword: true,
+                ),
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
@@ -126,7 +139,11 @@ class SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, {bool isPassword = false}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label, {
+    bool isPassword = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
