@@ -58,6 +58,8 @@ dependencies:
   # syncfusion_flutter_charts: ^29.1.37+1
   # syncfusion_flutter_charts: ^20.4.48
   # flutter_charts: ^0.5.2
+  printing: ^5.11.0
+  pdf: ^3.10.0
 
 
 dev_dependencies:
