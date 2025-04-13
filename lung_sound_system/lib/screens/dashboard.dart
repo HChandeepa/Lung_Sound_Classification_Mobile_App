@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 // Import other pages
 import 'chat_page.dart';
 import 'profile_page.dart';
-import 'history_page.dart';
+import 'history_page copy.dart';
 import 'select_patient.dart'; 
 
 void main() {
@@ -61,8 +61,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
-          BottomNavigationBarItem(icon: Icon(Icons.message), label: "Chat"),
+          BottomNavigationBarItem(icon: Icon(Icons.supervised_user_circle), label: "Patients"),
+          BottomNavigationBarItem(icon: Icon(Icons.article), label: "Manual"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
