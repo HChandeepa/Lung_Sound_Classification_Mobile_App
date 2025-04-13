@@ -188,7 +188,7 @@ class _DiseasedDiagnosisPageState extends State<DiseasedDiagnosisPage> {
           "Diseased Diagnosis",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: 20,
             color: Colors.white,
           ),
         ),
