@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'Healthy diagnosis page.dart';
+import 'diseased_diagnosis_page.dart';
 
 class PatientDetailsPage extends StatefulWidget {
   final Map<String, dynamic> patient;
@@ -94,14 +95,26 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
             _isLoading = false;
           });
         } else {
+          // Navigate to DiseasedDiagnosisPage with the results
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DiseasedDiagnosisPage(
+                patient: widget.patient,
+                diseases: List<String>.from(responseData['diseases'] ?? []),
+                probabilities: (responseData['probabilities'] as List?)
+                    ?.map((p) => (p as num).toDouble())
+                    .toList() ?? [],
+              ),
+            ),
+          );
+          
+          // Reset state when returning from DiseasedDiagnosisPage
           setState(() {
-            _diseases = List<String>.from(responseData['diseases'] ?? []);
-            _probabilities = (responseData['probabilities'] as List?)
-                ?.map((p) => (p as num).toDouble())
-                .toList() ?? [];
-            _severities = (responseData['severities'] as List?)
-                ?.map((s) => s.toString())
-                .toList() ?? [];
+            _selectedFile = null;
+            _diseases = [];
+            _probabilities = [];
+            _severities = [];
             _isLoading = false;
           });
         }
@@ -226,7 +239,7 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
