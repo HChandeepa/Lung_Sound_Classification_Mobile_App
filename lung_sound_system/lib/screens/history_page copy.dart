@@ -100,12 +100,7 @@ class _HistoryPageState extends State<HistoryPage> {
       backgroundColor: const Color(0xFF222222),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        automaticallyImplyLeading: false, // 👈 This disables the back button
         title: const Text('Patients',style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
         centerTitle: true,
         titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),
