@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Added Firestore import
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -18,6 +18,7 @@ class SignupScreenState extends State<SignupScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _obscurePassword = true; // Track whether password is obscured
 
   // Method to handle sign up
   Future<void> _signUp() async {
@@ -89,17 +90,13 @@ class SignupScreenState extends State<SignupScreen> {
                 _buildTextField(institutionController, 'Institution'),
                 _buildTextField(slmcController, 'SLMC Registration No'),
                 _buildTextField(emailController, 'E-mail'),
-                _buildTextField(
-                  passwordController,
-                  'Password',
-                  isPassword: true,
-                ),
+                _buildPasswordField(),
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _signUp, // Call _signUp() method
+                    onPressed: _signUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       shape: RoundedRectangleBorder(
@@ -141,14 +138,12 @@ class SignupScreenState extends State<SignupScreen> {
 
   Widget _buildTextField(
     TextEditingController controller,
-    String label, {
-    bool isPassword = false,
-  }) {
+    String label,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
         controller: controller,
-        obscureText: isPassword,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: label,
@@ -158,6 +153,38 @@ class SignupScreenState extends State<SignupScreen> {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextField(
+        controller: passwordController,
+        obscureText: _obscurePassword,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: 'Password',
+          labelStyle: const TextStyle(color: Colors.grey),
+          filled: true,
+          fillColor: Colors.grey[900],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscurePassword ? Icons.visibility : Icons.visibility_off,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
           ),
         ),
       ),

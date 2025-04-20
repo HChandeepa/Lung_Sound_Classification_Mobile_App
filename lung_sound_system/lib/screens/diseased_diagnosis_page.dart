@@ -111,7 +111,7 @@ class _DiseasedDiagnosisPageState extends State<DiseasedDiagnosisPage> {
                     padding: const pw.EdgeInsets.only(bottom: 5),
                     child: pw.Text('$disease: $prob%'),
                   );
-                }).toList(),
+                }),
                 pw.SizedBox(height: 20),
                 pw.Text(
                   'Top Conditions Probability Distribution',
