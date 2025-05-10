@@ -64,11 +64,47 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _logout() async {
-    await _auth.signOut();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
+    // Show confirmation dialog
+    bool? confirm = await showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2C2C2E),
+            title: const Text(
+              'Confirm Logout',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: const Text(
+              'Are you sure you want to logout?',
+              style: TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.blueAccent),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+              ),
+            ],
+          ),
     );
+
+    // If user confirmed logout
+    if (confirm == true) {
+      await _auth.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    }
   }
 
   void _showAboutDialog() {

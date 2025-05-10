@@ -60,6 +60,7 @@ dependencies:
   # flutter_charts: ^0.5.2
   printing: ^5.11.0
   pdf: ^3.10.0
+  
 
 
 dev_dependencies:
@@ -74,6 +75,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   intl: 0.17.0
   flutter_sound: ^9.28.0
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -95,6 +97,7 @@ flutter:
     - assets/male.jpg
     - assets/female.jpg
     - assets/profile_picture1.png
+    - assets/google_icon.jpeg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -122,3 +125,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  image_path: "assets/splash_image.png"
+  min_sdk_android: 21

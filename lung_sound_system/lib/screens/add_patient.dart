@@ -133,13 +133,57 @@ class _AddPatientPageState extends State<AddPatientPage> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Patient information saved successfully')),
-      );
+  SnackBar(
+    backgroundColor: Colors.green[600],
+    behavior: SnackBarBehavior.floating,
+    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    content: Row(
+      children: const [
+        Icon(Icons.check_circle, color: Colors.white),
+        SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            'Patient information saved successfully!',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    ),
+    duration: Duration(seconds: 3),
+  ),
+);
+
       Navigator.pop(context); // Or navigate to another screen
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save patient info: $e')),
-      );
+  SnackBar(
+    backgroundColor: Colors.red[700],
+    behavior: SnackBarBehavior.floating,
+    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    content: Row(
+      children: [
+        const Icon(Icons.error_outline, color: Colors.white),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            'Failed to save patient info: $e',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    ),
+    duration: Duration(seconds: 4),
+  ),
+);
+
     }
   }
 

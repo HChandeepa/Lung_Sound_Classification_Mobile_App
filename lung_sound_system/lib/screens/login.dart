@@ -34,11 +34,37 @@ class LoginScreenState extends State<LoginScreen> {
     } on FirebaseAuthException catch (e) {
       // Handle different FirebaseAuthException errors
       String errorMessage = 'An error occurred';
-      if (e.code == 'user-not-found') {
-        errorMessage = 'No user found for that email.';
-      } else if (e.code == 'wrong-password') {
-        errorMessage = 'Wrong password provided.';
-      }
+if (e.code == 'user-not-found') {
+  errorMessage = 'No user found for that email.';
+} else if (e.code == 'wrong-password') {
+  errorMessage = 'Wrong password provided.';
+}
+
+ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(
+    backgroundColor: Colors.red[700],
+    behavior: SnackBarBehavior.floating,
+    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    content: Row(
+      children: [
+        const Icon(Icons.warning_amber_rounded, color: Colors.white),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            errorMessage,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    ),
+    duration: const Duration(seconds: 4),
+  ),
+);
+
 
       // Show error message in a SnackBar
       ScaffoldMessenger.of(context).showSnackBar(

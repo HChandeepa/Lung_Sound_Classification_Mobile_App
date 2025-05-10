@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'Healthy diagnosis page.dart';
 import 'diseased_diagnosis_page.dart';
 
@@ -21,36 +24,31 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
   String? _errorMessage;
   List<String> _diseases = [];
   List<double> _probabilities = [];
-  List<String> _severities = [];
 
   Future<void> _pickAudioFile() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['wav'],
+        withData: true,
       );
 
-      if (result != null) {
+      if (result != null && result.files.single.path != null) {
         setState(() {
           _selectedFile = File(result.files.single.path!);
-          _diseases = [];
-          _probabilities = [];
-          _severities = [];
           _errorMessage = null;
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = "Failed to pick file: $e";
+        _errorMessage = "File selection failed: ${e.toString()}";
       });
     }
   }
 
   Future<void> _uploadAndClassify() async {
     if (_selectedFile == null) {
-      setState(() {
-        _errorMessage = "Please select a WAV file first";
-      });
+      setState(() => _errorMessage = "Please select a WAV file first");
       return;
     }
 
@@ -60,191 +58,193 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
     });
 
     try {
-      var uri = Uri.parse("https://hchandeepa-pulmosense-ai.hf.space/Predict");
-      var bytes = await _selectedFile!.readAsBytes();
-
-      var response = await http.post(
-        uri,
-        headers: {
-          "Content-Type": "audio/wav",
-        },
-        body: bytes,
+      final uri = Uri.parse(
+        "https://hchandeepa-pulmosense-ai.hf.space/Predict",
       );
+      final bytes = await _selectedFile!.readAsBytes();
+
+      final response = await http
+          .post(uri, headers: {"Content-Type": "audio/wav"}, body: bytes)
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
-        var responseData = json.decode(response.body);
-        print("API Response: $responseData");
-
-        if (responseData['result'] == false || responseData['healthy'] == true) {
-          // Navigate to HealthyDiagnosisPage and wait for return
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HealthyDiagnosisPage(
-                patient: widget.patient,
-              ),
-            ),
-          );
-          
-          // Reset state when returning from HealthyDiagnosisPage
-          setState(() {
-            _selectedFile = null;
-            _diseases = [];
-            _probabilities = [];
-            _severities = [];
-            _isLoading = false;
-          });
-        } else {
-          // Navigate to DiseasedDiagnosisPage with the results
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DiseasedDiagnosisPage(
-                patient: widget.patient,
-                diseases: List<String>.from(responseData['diseases'] ?? []),
-                probabilities: (responseData['probabilities'] as List?)
-                    ?.map((p) => (p as num).toDouble())
-                    .toList() ?? [],
-              ),
-            ),
-          );
-          
-          // Reset state when returning from DiseasedDiagnosisPage
-          setState(() {
-            _selectedFile = null;
-            _diseases = [];
-            _probabilities = [];
-            _severities = [];
-            _isLoading = false;
-          });
-        }
+        final responseData = json.decode(response.body);
+        _handleApiResponse(responseData);
       } else {
-        setState(() {
-          _errorMessage = "Server error: ${response.statusCode} - ${response.body}";
-          _isLoading = false;
-        });
+        throw "Server responded with ${response.statusCode}: ${response.body}";
       }
     } catch (e) {
       setState(() {
-        _errorMessage = "Error occurred: $e";
+        _errorMessage = "Analysis failed: ${e.toString()}";
         _isLoading = false;
       });
-      print("Error details: $e");
     }
   }
 
-  Widget _buildPredictionResults() {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
-        ),
-      );
-    }
+  void _handleApiResponse(Map<String, dynamic> responseData) {
+    print("API Response: $responseData");
 
-    if (_errorMessage != null) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 16),
+    if (responseData['healthy'] == true || responseData['result'] == false) {
+      _navigateToHealthyPage();
+    } else {
+      _navigateToDiseasedPage(responseData);
+    }
+  }
+
+  Future<void> _navigateToHealthyPage() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HealthyDiagnosisPage(
+          patient: widget.patient,
+          diagnosisResult: {'healthy': true, 'timestamp': DateTime.now()},
+        ),
+      ),
+    );
+    _resetState();
+  }
+
+  Future<void> _navigateToDiseasedPage(Map<String, dynamic> responseData) async {
+    final diseases = List<String>.from(responseData['diseases'] ?? []);
+    final probabilities = (responseData['probabilities'] as List?)
+            ?.map((p) => (p is num ? p.toDouble() : double.tryParse(p.toString()) ?? 0.0))
+            .toList() ??
+        [];
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DiseasedDiagnosisPage(
+          patient: widget.patient,
+          diseases: diseases,
+          probabilities: probabilities,
+        ),
+      ),
+    );
+    _resetState();
+  }
+
+  void _resetState() {
+    setState(() {
+      _isLoading = false;
+      _selectedFile = null;
+      _diseases = [];
+      _probabilities = [];
+    });
+  }
+
+  Widget _buildFileSelectionCard() {
+    return Card(
+      color: const Color(0xFF2C2C2E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2C2C2E),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red),
-        ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.error_outline, color: Colors.red),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.white),
+            const Text(
+              "LUNG SOUND ANALYSIS",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white70,
+                letterSpacing: 1.2,
               ),
             ),
-          ],
-        ),
-      );
-    }
-
-    if (_diseases.isEmpty) {
-      return const SizedBox();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 20),
-        const Text(
-          "PREDICTION RESULTS",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white70,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ..._diseases.asMap().entries.map((entry) {
-          final index = entry.key;
-          final disease = entry.value;
-          final probability = (_probabilities[index] * 100).toStringAsFixed(2);
-          final severity = _severities[index];
-          
-          return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2C2C2E),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent.withOpacity(0.2),
-                  shape: BoxShape.circle,
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: _pickAudioFile,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.blueAccent.withOpacity(0.1),
+                side: const BorderSide(color: Colors.blueAccent),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  Icons.medical_services,
-                  color: Colors.blueAccent,
-                ),
+                minimumSize: const Size(double.infinity, 50),
               ),
-              title: Text(
-                disease,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 4),
+                  const Icon(Icons.upload_file, color: Colors.blueAccent),
+                  const SizedBox(width: 8),
                   Text(
-                    'Probability: $probability%',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  Text(
-                    'Severity: $severity',
-                    style: const TextStyle(color: Colors.white70),
+                    _selectedFile?.path.split('/').last ?? 'SELECT WAV FILE',
+                    style: const TextStyle(
+                      color: Colors.blueAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-              trailing: const Icon(
-                Icons.chevron_right,
-                color: Colors.white70,
-              ),
             ),
-          );
-        }),
-      ],
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _uploadAndClassify,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.analytics, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          'ANALYZE SOUND',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildDetailTile(IconData icon, String label, String? value) {
+  Widget _buildErrorWidget() {
+    if (_errorMessage == null) return const SizedBox();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2C2C2E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientDetailTile(IconData icon, String label, String? value) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -275,6 +275,216 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
     );
   }
 
+ Widget _buildVisitHistorySection() {
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser == null) {
+    return const SizedBox(); // Or show a sign-in prompt
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Padding(
+        padding: EdgeInsets.only(left: 4.0),
+        child: Text(
+          "VISIT HISTORY",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white70,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
+      StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('visits')
+            .where('patientId', isEqualTo: widget.patient['nic'])
+            .where('uid', isEqualTo: currentUser.uid)
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2C2C2E),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Error loading visit history',
+                style: TextStyle(color: Colors.red[400]),
+              ),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+              ),
+            );
+          }
+
+          if (snapshot.data!.docs.isEmpty) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2C2C2E),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'No visit history found',
+                style: TextStyle(color: Colors.white70),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              final doc = snapshot.data!.docs[index];
+              final visit = doc.data() as Map<String, dynamic>;
+              return _buildVisitCard(visit);
+            },
+          );
+        },
+      ),
+    ],
+  );
+}
+
+Widget _buildVisitCard(Map<String, dynamic> visit) {
+  final timestamp = visit['timestamp'] as Timestamp?;
+  final date = timestamp != null
+      ? DateFormat('MMM dd, yyyy - hh:mm a').format(timestamp.toDate())
+      : 'Date not available';
+
+  final isHealthy = visit['healthy'] == true;
+  final diseases = visit['diseases'] is List ? List<String>.from(visit['diseases']) : [];
+  final probabilities = visit['probabilities'] is List
+      ? List<double>.from(
+          (visit['probabilities'] as List).map((p) => p is num ? p.toDouble() : 0.0))
+      : [];
+
+  return Card(
+    color: const Color(0xFF2C2C2E),
+    margin: const EdgeInsets.only(bottom: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                visit['type']?.toString().toUpperCase() ?? 'DIAGNOSIS',
+                style: const TextStyle(
+                  color: Colors.blueAccent,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                date,
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (isHealthy)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.withOpacity(0.3)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Healthy Lung Sound Detected',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (diseases.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Detected Conditions:',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...List.generate(diseases.length, (index) {
+                  final disease = diseases[index];
+                  final prob = index < probabilities.length
+                      ? '${(probabilities[index] * 100).toStringAsFixed(1)}%'
+                      : '';
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.blueAccent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            disease,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          prob,
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -284,7 +494,11 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Patient Details',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
@@ -307,98 +521,41 @@ class _PatientDetailsPageState extends State<PatientDetailsPage> {
             Expanded(
               child: ListView(
                 children: [
-                  _buildDetailTile(Icons.person, "Name", widget.patient['name']),
-                  _buildDetailTile(Icons.badge, "NIC", widget.patient['nic']),
-                  _buildDetailTile(Icons.wc, "Gender", widget.patient['gender']),
-                  _buildDetailTile(Icons.cake, "Birth Day", widget.patient['birthDate']),
-                  _buildDetailTile(Icons.location_city, "Home Town", widget.patient['homeTown']),
-                  _buildDetailTile(Icons.phone, "Phone Number", widget.patient['phone']),
-                  const SizedBox(height: 24),
-                  Card(
-                    color: const Color(0xFF2C2C2E),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "LUNG SOUND ANALYSIS",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white70,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          OutlinedButton(
-                            onPressed: _pickAudioFile,
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent.withOpacity(0.1),
-                              side: const BorderSide(color: Colors.blueAccent),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.upload_file, color: Colors.blueAccent),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _selectedFile?.path.split('/').last ?? 'SELECT WAV FILE',
-                                  style: const TextStyle(
-                                    color: Colors.blueAccent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _uploadAndClassify,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.analytics, color: Colors.white),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'ANALYZE SOUND',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  _buildPatientDetailTile(
+                    Icons.person,
+                    "Name",
+                    widget.patient['name'],
                   ),
-                  const SizedBox(height: 16),
-                  _buildPredictionResults(),
+                  _buildPatientDetailTile(
+                    Icons.badge,
+                    "NIC",
+                    widget.patient['nic'],
+                  ),
+                  _buildPatientDetailTile(
+                    Icons.wc,
+                    "Gender",
+                    widget.patient['gender'],
+                  ),
+                  _buildPatientDetailTile(
+                    Icons.cake,
+                    "Birth Day",
+                    widget.patient['birthDate'],
+                  ),
+                  _buildPatientDetailTile(
+                    Icons.location_city,
+                    "Home Town",
+                    widget.patient['homeTown'],
+                  ),
+                  _buildPatientDetailTile(
+                    Icons.phone,
+                    "Phone Number",
+                    widget.patient['phone'],
+                  ),
+                  const SizedBox(height: 24),
+                  _buildFileSelectionCard(),
+                  _buildErrorWidget(),
+                  const SizedBox(height: 24),
+                  _buildVisitHistorySection(),
                 ],
               ),
             ),
