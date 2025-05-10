@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Import other pages
-import 'chat_page.dart';
+
 import 'profile_page.dart';
 import 'history_page copy.dart';
 import 'select_patient.dart'; 
@@ -37,7 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> _pages = [
     const DashboardContent(),
     const HistoryPage(),
-    const ChatPage(),
+  
     const ProfilePage(),
   ];
 
@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: SafeArea(child: _pages[_selectedIndex]),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: const Color.fromARGB(179, 106, 105, 105),
         showUnselectedLabels: false,
@@ -62,8 +62,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.supervised_user_circle), label: "Patients"),
-          BottomNavigationBarItem(icon: Icon(Icons.article), label: "Manual"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          
         ],
       ),
     );
