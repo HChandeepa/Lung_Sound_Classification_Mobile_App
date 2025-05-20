@@ -39,27 +39,35 @@ The AI inference runs via a Flask API deployed on **Hugging Face Spaces**, which
 
 ---
 
-## 📂 Project Structure (Flutter)
+## 📂 Key Files
 
-lung_sound_system/
-└── lib/
-└── screens/
-├── add_patient.dart
-├── dashboard.dart
-├── forgot_password.dart
-├── Healthy diagnosis page.dart
-├── history_page.dart
-├── history_page copy.dart
-├── login.dart
-├── new_patients_auscultation.dart
-├── patient_details_page.dart
-├── profile_page.dart
-├── select_patient.dart
-├── signup.dart
-├── splash.dart
-└── firebase_options.dart
-└── main.dart
+- `main.dart`: Application entry point
+- `firebase_options.dart`: Firebase configuration
 
+## Screens
+
+- Authentication:
+  - `login.dart`
+  - `signup.dart`
+  - `forgot_password.dart`
+  
+- Patient Management:
+  - `add_patient.dart`
+  - `select_patient.dart`
+  - `patient_details_page.dart`
+  
+- Features:
+  - `new_patients_auscultation.dart`
+  - `Healthy diagnosis page.dart`
+  
+- App Flow:
+  - `splash.dart`
+  - `dashboard.dart`
+  - `profile_page.dart`
+  
+- History:
+  - `history_page.dart`
+  - `history_page copy.dart`
 
 ---
 
